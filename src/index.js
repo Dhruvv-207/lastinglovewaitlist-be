@@ -78,3 +78,6 @@ app.get('/api/waitlist/count', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+
+module.exports = app;
+
