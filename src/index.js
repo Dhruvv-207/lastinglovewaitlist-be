@@ -49,7 +49,7 @@ app.post('/api/waitlist/join', async (req, res) => {
         await newUser.save();
 
         // Optional: Send Confirmation Email
-        
+
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: email,
