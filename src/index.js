@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const app = express();
@@ -26,8 +26,16 @@ const waitlistSchema = new mongoose.Schema({
 
 const Waitlist = mongoose.model('Waitlist', waitlistSchema);
 
-// Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Email Transporter (Placeholder for Resend/SendGrid)
+const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // Use SSL
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
 
 // Routes
 app.post('/api/waitlist/join', async (req, res) => {
@@ -42,14 +50,17 @@ app.post('/api/waitlist/join', async (req, res) => {
         const newUser = new Waitlist({ email, name });
         await newUser.save();
 
-        // Send confirmation email via Resend
-        resend.emails.send({
-            from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
+        // Email Transporter (Updated for better production reliability)
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
             to: email,
             subject: 'Welcome to the Legacy | Lasting Loves Waitlist',
             text: `Hi ${name || 'there'},\n\nThank you for joining the Lasting Loves waitlist. We'll let you know as soon as we're ready to launch!\n\nBest,\nThe Lasting Loves Team`
-        }).catch(err => {
-            console.error('Resend Email Error:', err);
+        };
+
+        // Send email asynchronously and don't block the response
+        transporter.sendMail(mailOptions).catch(err => {
+            console.error('Email sending failed:', err.message);
         });
 
         res.status(201).json({ message: 'Success! You are on the list.' });
