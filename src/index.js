@@ -49,7 +49,7 @@ app.post('/api/waitlist/join', async (req, res) => {
         await newUser.save();
 
         // Optional: Send Confirmation Email
-        /*
+        
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: email,
@@ -57,7 +57,7 @@ app.post('/api/waitlist/join', async (req, res) => {
             text: `Hi ${name || 'there'},\n\nThank you for joining the Lasting Loves waitlist. We'll let you know as soon as we're ready to launch!\n\nBest,\nThe Lasting Loves Team`
         };
         await transporter.sendMail(mailOptions);
-        */
+
 
         res.status(201).json({ message: 'Success! You are on the list.' });
     } catch (error) {
