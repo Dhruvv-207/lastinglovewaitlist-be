@@ -81,7 +81,8 @@ app.get('/api/waitlist/count', async (req, res) => {
         console.log('Waitlist count:', count);
         res.json({ count });
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching count' });
+        console.error('Count Error:', error);
+        res.status(500).json({ message: 'Error fetching count', error: error.message });
     }
 });
 
