@@ -26,11 +26,9 @@ const waitlistSchema = new mongoose.Schema({
 
 const Waitlist = mongoose.model('Waitlist', waitlistSchema);
 
-// Email Transporter (Placeholder for Resend/SendGrid)
+// Email Transporter (Optimized for Gmail)
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // Use SSL
+    service: 'gmail',
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
@@ -50,12 +48,54 @@ app.post('/api/waitlist/join', async (req, res) => {
         const newUser = new Waitlist({ email, name });
         await newUser.save();
 
-        // Email Transporter (Updated for better production reliability)
+        // Premium HTML Email Template
+        const emailTemplate = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; color: #1e293b; margin: 0; padding: 0; background-color: #f8fafc; }
+                .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+                .header { background: #cba150; padding: 40px 20px; text-align: center; }
+                .logo-text { color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin: 0; }
+                .content { padding: 40px; text-align: center; }
+                .welcome-text { font-size: 24px; color: #0f172a; margin-bottom: 20px; font-weight: 600; }
+                .body-text { font-size: 16px; color: #475569; margin-bottom: 30px; }
+                .divider { height: 1px; background: #e2e8f0; margin: 30px 0; }
+                .mantra { font-family: 'Georgia', serif; font-style: italic; color: #cba150; font-size: 18px; margin-bottom: 10px; }
+                .footer { background: #f1f5f9; padding: 30px; text-align: center; font-size: 13px; color: #94a3b8; }
+                .btn { display: inline-block; padding: 14px 28px; background: #cba150; color: #ffffff; text-decoration: none; border-radius: 50px; font-weight: 600; margin-top: 20px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1 class="logo-text">Lasting Loves</h1>
+                </div>
+                <div class="content">
+                    <h2 class="welcome-text">Welcome to the Legacy</h2>
+                    <p class="body-text">Hi ${name || 'there'},</p>
+                    <p class="body-text">Thank you for joining our exclusive early access waitlist. You've just taken the first step toward bridging the gap between generations and preserving your unique voice forever.</p>
+                    <div class="mantra">"Keep their spirit alive."</div>
+                    <div class="divider"></div>
+                    <p class="body-text">We'll reach out to you personally as soon as we're ready to invite you into the inner circle.</p>
+                </div>
+                <div class="footer">
+                    <p>&copy; ${new Date().getFullYear()} Lasting Loves. All rights reserved.</p>
+                    <p>Designed with love for the memories that matter.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        `;
+
         const mailOptions = {
-            from: process.env.EMAIL_USER,
+            from: `"Lasting Loves" <${process.env.EMAIL_USER}>`,
             to: email,
             subject: 'Welcome to the Legacy | Lasting Loves Waitlist',
-            text: `Hi ${name || 'there'},\n\nThank you for joining the Lasting Loves waitlist. We'll let you know as soon as we're ready to launch!\n\nBest,\nThe Lasting Loves Team`
+            text: `Hi ${name || 'there'},\n\nThank you for joining the Lasting Loves waitlist. We'll let you know as soon as we're ready to launch!\n\nBest,\nThe Lasting Loves Team`,
+            html: emailTemplate
         };
 
         // Send email (Must await in Vercel/Serverless environment)
@@ -63,8 +103,9 @@ app.post('/api/waitlist/join', async (req, res) => {
             await transporter.sendMail(mailOptions);
             console.log('Email sent successfully to:', email);
         } catch (emailError) {
+            console.log('Email user:', process.env.EMAIL_USER);
+            console.log('Email pass:', process.env.EMAIL_PASS);
             console.error('Email sending failed:', emailError.message);
-            // We catch this here so the user still sees a success message for the signup
         }
 
         res.status(201).json({ message: 'Success! You are on the list.' });
