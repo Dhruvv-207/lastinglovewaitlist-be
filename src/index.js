@@ -58,10 +58,14 @@ app.post('/api/waitlist/join', async (req, res) => {
             text: `Hi ${name || 'there'},\n\nThank you for joining the Lasting Loves waitlist. We'll let you know as soon as we're ready to launch!\n\nBest,\nThe Lasting Loves Team`
         };
 
-        // Send email asynchronously and don't block the response
-        transporter.sendMail(mailOptions).catch(err => {
-            console.error('Email sending failed:', err.message);
-        });
+        // Send email (Must await in Vercel/Serverless environment)
+        try {
+            await transporter.sendMail(mailOptions);
+            console.log('Email sent successfully to:', email);
+        } catch (emailError) {
+            console.error('Email sending failed:', emailError.message);
+            // We catch this here so the user still sees a success message for the signup
+        }
 
         res.status(201).json({ message: 'Success! You are on the list.' });
     } catch (error) {
