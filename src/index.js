@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/lasting-loves-waitlist')
+mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('MongoDB Connected'))
     .catch(err => console.log('MongoDB Connection Error:', err));
 
@@ -72,11 +72,17 @@ app.post('/api/waitlist/join', async (req, res) => {
 
 app.get('/api/waitlist/count', async (req, res) => {
     try {
+        console.log('Fetching waitlist count...');
         const count = await Waitlist.countDocuments();
+        console.log('Waitlist count:', count);
         res.json({ count });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching count' });
     }
+});
+
+app.get('/', (req, res) => {
+    res.send('Lasting Loves Waitlist Backend is Running');
 });
 
 app.listen(PORT, () => {
